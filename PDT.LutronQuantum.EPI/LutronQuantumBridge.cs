@@ -13,28 +13,111 @@ using Newtonsoft.Json;
 
 namespace LutronQuantum
 {
-	public static class LutronQuantumTemplateBridge
-	{
-		public static void LinkToApiExt(this LutronQuantum DspDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
-		{
+    public static class LutronQuantumTemplateBridge
+    {
 
-			LutronQuantumConfigObject joinMap = new LutronQuantumConfigObject();
+        public static void LinkToApiExt(this LutronQuantum lightingDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
+        {
+            LutronQuantumJoinMap joinMap = new LutronQuantumJoinMap();
+            var joinMapSerialized = JoinMapHelper.GetJoinMapForDevice(joinMapKey);
+            if (!string.IsNullOrEmpty(joinMapSerialized))
+                joinMap = JsonConvert.DeserializeObject<LutronQuantumJoinMap>(joinMapSerialized);
+            joinMap.OffsetJoinNumbers(joinStart);
+            Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
+            Debug.Console(0, "Linking to Lighting Type {0}", lightingDevice.GetType().Name.ToString());
+            // GenericLighitng Actions & FeedBack
+            trilist.SetUShortSigAction(joinMap.SelectScene, u => lightingDevice.SelectScene(lightingDevice.LightingScenes[u]));
+            int sceneIndex = 1;
+            foreach (var scene in lightingDevice.LightingScenes)
+            {
+                var tempIndex = sceneIndex - 1;
+                trilist.SetSigTrueAction((uint)(joinMap.LightingSceneOffset + sceneIndex), () => lightingDevice.SelectScene(lightingDevice.LightingScenes[tempIndex]));
+                scene.IsActiveFeedback.LinkInputSig(trilist.BooleanInput[(uint)(joinMap.LightingSceneOffset + sceneIndex)]);
+                trilist.StringInput[(uint)(joinMap.LightingSceneOffset + sceneIndex)].StringValue = scene.Name;
+                trilist.BooleanInput[(uint)(joinMap.ButtonVisibilityOffset + sceneIndex)].BoolValue = true;
+                sceneIndex++;
+            }
 
-			var JoinMapSerialized = JoinMapHelper.GetJoinMapForDevice(joinMapKey);
+            lightingDevice.CommunicationMonitor.IsOnlineFeedback.LinkInputSig(trilist.BooleanInput[joinMap.IsOnline]);
+            trilist.SetStringSigAction(joinMap.IntegrationIdSet, s => lightingDevice.IntegrationId = s);
+            trilist.SetStringSigAction(joinMap.ShadeGroup1IdSet, s => lightingDevice.ShadeGroup1Id = s);
+            trilist.SetStringSigAction(joinMap.ShadeGroup2IdSet, s => lightingDevice.ShadeGroup2Id = s);
 
-			if (!string.IsNullOrEmpty(JoinMapSerialized))
-				joinMap = JsonConvert.DeserializeObject<LutronQuantumConfigObject>(JoinMapSerialized);
+            /*
+            if (lightingDevice.GetType().Name.ToString() == "LutronQuantumArea")
+            {
+                var lutronDevice = lightingDevice as PepperDash.Essentials.Devices.Common.Environment.Lutron.LutronQuantumArea;
 
-		}
-	}
-	public class EssentialsPluginTemplateBridgeJoinMap : JoinMapBase
-	{
-		public EssentialsPluginTemplateBridgeJoinMap()
-		{
-		}
+            }
+            */
+            // Shades
+            trilist.SetSigTrueAction(joinMap.ShadeGroup1Raise, () =>
+            {
+                lightingDevice.ShadeGroupRaise(lightingDevice.ShadeGroup1Id);
+            });
 
-		public override void OffsetJoinNumbers(uint joinStart)
-		{
-		}
-	}
+            trilist.SetSigTrueAction(joinMap.ShadeGroup1Lower, () =>
+            {
+                lightingDevice.ShadeGroupLower(lightingDevice.ShadeGroup1Id);
+            });
+
+            trilist.SetSigTrueAction(joinMap.ShadeGroup2Raise, () =>
+            {
+                lightingDevice.ShadeGroupRaise(lightingDevice.ShadeGroup2Id);
+            });
+
+            trilist.SetSigTrueAction(joinMap.ShadeGroup2Lower, () =>
+            {
+                lightingDevice.ShadeGroupLower(lightingDevice.ShadeGroup2Id);
+            });
+        }
+
+        public class LutronQuantumJoinMap : JoinMapBase
+        {
+            public uint IsOnline { get; set; }
+            public uint SelectScene { get; set; }
+            public uint LightingSceneOffset { get; set; }
+            public uint ButtonVisibilityOffset { get; set; }
+            public uint IntegrationIdSet { get; set; }
+            public uint ShadeGroup1IdSet { get; set; }
+            public uint ShadeGroup2IdSet { get; set; }
+            public uint ShadeGroup1Raise { get; set; }
+            public uint ShadeGroup1Lower { get; set; }
+            public uint ShadeGroup2Raise { get; set; }
+            public uint ShadeGroup2Lower { get; set; }
+
+            public LutronQuantumJoinMap()
+            {
+                // Digital
+                IsOnline = 1;
+                SelectScene = 1;
+                LightingSceneOffset = 10;
+                ButtonVisibilityOffset = 40;
+                ShadeGroup1Raise = 60;
+                ShadeGroup1Lower = 61;
+                ShadeGroup2Raise = 62;
+                ShadeGroup2Lower = 63;
+
+                // Analog
+
+                // Serial
+                IntegrationIdSet = 1;
+                ShadeGroup1IdSet = 2;
+                ShadeGroup2IdSet = 3;
+
+            }
+            public override void OffsetJoinNumbers(uint joinStart)
+            {
+                var joinOffset = joinStart - 1;
+                IsOnline = IsOnline + joinOffset;
+                SelectScene = SelectScene + joinOffset;
+                LightingSceneOffset = LightingSceneOffset + joinOffset;
+                ButtonVisibilityOffset = ButtonVisibilityOffset + joinOffset;
+                ShadeGroup1Raise = ShadeGroup1Raise + joinOffset;
+                ShadeGroup1Lower = ShadeGroup1Lower + joinOffset;
+                ShadeGroup2Raise = ShadeGroup2Raise + joinOffset;
+                ShadeGroup2Lower = ShadeGroup2Lower + joinOffset;
+            }
+        }
+    }
 }

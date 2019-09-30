@@ -14,10 +14,12 @@ using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Lighting;
 using PepperDash.Essentials.Core.Config;
 using PepperDash.Core;
+using PepperDash.Essentials.Bridges;
+using Crestron.SimplSharpPro.DeviceSupport;
 
 namespace LutronQuantum 
 {
-	public class LutronQuantum : LightingBase, ILightingMasterRaiseLower, ICommunicationMonitor
+    public class LutronQuantum : LightingBase, ILightingMasterRaiseLower, ICommunicationMonitor, IBridge
 
 	{
 		public static void LoadPlugin()
@@ -43,6 +45,8 @@ namespace LutronQuantum
         CTimer SubscribeAfterLogin;
 
         public string IntegrationId;
+        public string ShadeGroup1Id;
+        public string ShadeGroup2Id;
         string Username;
         string Password;
 
@@ -56,6 +60,8 @@ namespace LutronQuantum
             Communication = comm;
 
             IntegrationId = props.IntegrationId;
+            ShadeGroup1Id = props.ShadeGroup1Id;
+            ShadeGroup2Id = props.ShadeGroup2Id;
 
 			if (props.Control.Method != eControlMethod.Com)
 			{
@@ -240,6 +246,23 @@ namespace LutronQuantum
         }
 
         /// <summary>
+        /// Begins raising the shades in the group
+        /// </summary>
+        public void ShadeGroupRaise(string ShadeGroupId)
+        {
+            SendLine(string.Format("{0}SHADEGRP,{1},{2}", Set, ShadeGroupId, (int)eAction.Raise));
+        }
+
+        /// <summary>
+        /// Begins lowering the shades in the group
+        /// </summary>
+        public void ShadeGroupLower(string ShadeGroupId)
+        {
+            SendLine(string.Format("{0}SHADEGRP,{1},{2}", Set, ShadeGroupId, (int)eAction.Lower));
+        }
+        
+
+        /// <summary>
         /// Appends the delimiter and sends the string
         /// </summary>
         /// <param name="s"></param>
@@ -248,6 +271,14 @@ namespace LutronQuantum
             Debug.Console(2, this, "TX: '{0}'", s);
             Communication.SendText(s + Delimiter);
         }
+        #region IBridge Members
+
+        public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey)
+        {
+            this.LinkToApiExt(trilist, joinStart, joinMapKey);
+        }
+
+        #endregion
     }
 
     public enum eAction : int

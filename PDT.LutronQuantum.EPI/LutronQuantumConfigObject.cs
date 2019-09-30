@@ -17,6 +17,8 @@ namespace LutronQuantum
 		public ControlPropertiesConfig Control { get; set; }
 
 		public string IntegrationId { get; set; }
+        public string ShadeGroup1Id { get; set; }
+        public string ShadeGroup2Id { get; set; }
 		public List<LightingScene> Scenes { get; set; }
 
 		// Moved to use existing properties in Control object

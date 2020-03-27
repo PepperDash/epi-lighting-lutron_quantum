@@ -20,7 +20,6 @@ using Crestron.SimplSharpPro.DeviceSupport;
 namespace LutronQuantum 
 {
     public class LutronQuantum : LightingBase, ILightingMasterRaiseLower, ICommunicationMonitor, IBridge
-
 	{
 		public static void LoadPlugin()
 		{
@@ -296,8 +295,4 @@ namespace LutronQuantum
         HyperionShaddowSensorOverrideState = 26,
         HyperionBrightnessSensorOverrideStatue = 27
     }
-
-
-	}
-
-
+}

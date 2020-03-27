@@ -1,3 +1,4 @@
 [submodule "EssentialsBuilds"]
 	path = EssentialsBuilds
-url=https://github.com/PepperDash/Essentials-Builds.git
+	url = https://github.com/PepperDash/Essentials-Builds.git
+	branch = releases

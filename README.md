@@ -1,9 +1,9 @@
 # PDT.EssentialsPluginTemplate.EPI
 
 Example Config: 
-To be places in the 
 
-```
+
+``` json
 {
     "system": 
     {

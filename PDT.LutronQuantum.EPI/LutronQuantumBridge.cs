@@ -19,12 +19,19 @@ namespace LutronQuantum
         public static void LinkToApiExt(this LutronQuantum lightingDevice, BasicTriList trilist, uint joinStart, string joinMapKey)
         {
             LutronQuantumJoinMap joinMap = new LutronQuantumJoinMap();
+
             var joinMapSerialized = JoinMapHelper.GetJoinMapForDevice(joinMapKey);
             if (!string.IsNullOrEmpty(joinMapSerialized))
                 joinMap = JsonConvert.DeserializeObject<LutronQuantumJoinMap>(joinMapSerialized);
             joinMap.OffsetJoinNumbers(joinStart);
+
             Debug.Console(1, "Linking to Trilist '{0}'", trilist.ID.ToString("X"));
             Debug.Console(0, "Linking to Lighting Type {0}", lightingDevice.GetType().Name.ToString());
+
+            trilist.SetStringSigAction(joinMap.IntegrationIdSet, id => lightingDevice.SetIntegrationId(id));
+            trilist.SetStringSigAction(joinMap.ShadeGroup1IdSet, id => lightingDevice.SetShadeGroup1Id(id));
+            trilist.SetStringSigAction(joinMap.ShadeGroup2IdSet, id => lightingDevice.SetShadeGroup2Id(id));
+
             // GenericLighitng Actions & FeedBack
             trilist.SetUShortSigAction(joinMap.SelectScene, u => lightingDevice.SelectScene(lightingDevice.LightingScenes[u]));
             int sceneIndex = 1;
@@ -43,13 +50,6 @@ namespace LutronQuantum
             trilist.SetStringSigAction(joinMap.ShadeGroup1IdSet, s => lightingDevice.ShadeGroup1Id = s);
             trilist.SetStringSigAction(joinMap.ShadeGroup2IdSet, s => lightingDevice.ShadeGroup2Id = s);
 
-            /*
-            if (lightingDevice.GetType().Name.ToString() == "LutronQuantumArea")
-            {
-                var lutronDevice = lightingDevice as PepperDash.Essentials.Devices.Common.Environment.Lutron.LutronQuantumArea;
-
-            }
-            */
             // Shades
             trilist.SetSigTrueAction(joinMap.ShadeGroup1Raise, () =>
             {
@@ -104,8 +104,8 @@ namespace LutronQuantum
                 IntegrationIdSet = 1;
                 ShadeGroup1IdSet = 2;
                 ShadeGroup2IdSet = 3;
-
             }
+
             public override void OffsetJoinNumbers(uint joinStart)
             {
                 var joinOffset = joinStart - 1;
@@ -117,6 +117,9 @@ namespace LutronQuantum
                 ShadeGroup1Lower = ShadeGroup1Lower + joinOffset;
                 ShadeGroup2Raise = ShadeGroup2Raise + joinOffset;
                 ShadeGroup2Lower = ShadeGroup2Lower + joinOffset;
+                IntegrationIdSet = IntegrationIdSet + joinOffset;
+                ShadeGroup1IdSet = ShadeGroup1IdSet + joinOffset;
+                ShadeGroup2IdSet = ShadeGroup2IdSet + joinOffset;
             }
         }
     }

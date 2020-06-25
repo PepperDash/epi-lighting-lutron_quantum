@@ -73,7 +73,6 @@ namespace LutronQuantum
 				Password = props.Control.TcpSshProperties.Password;
 			}
 
-
             LightingScenes = props.Scenes;
 
             var socket = comm as ISocketStatus;

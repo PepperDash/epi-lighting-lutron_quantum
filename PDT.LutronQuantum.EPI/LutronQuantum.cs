@@ -13,13 +13,14 @@ using PepperDash.Essentials;
 using PepperDash.Essentials.Core;
 using PepperDash.Essentials.Core.Lighting;
 using PepperDash.Essentials.Core.Config;
+using PepperDash.Essentials.Core.Devices;
 using PepperDash.Core;
 using PepperDash.Essentials.Bridges;
 using Crestron.SimplSharpPro.DeviceSupport;
 
 namespace LutronQuantum 
 {
-    public class LutronQuantum : LightingBase, ILightingMasterRaiseLower, ICommunicationMonitor, IBridge
+    public class LutronQuantum : LightingBase, ILightingScenes, ILightingMasterRaiseLower, ICommunicationMonitor, IBridge
 	{
 		public static void LoadPlugin()
 		{
@@ -33,9 +34,11 @@ namespace LutronQuantum
 			Debug.Console(2, "LutronQuantum comm is null: {0}", comm == null);
 			var config = JsonConvert.DeserializeObject<LutronQuantumConfigObject>(dc.Properties.ToString());
 
-			var newMe = new LutronQuantum(dc.Key, dc.Name, comm, config);
+			var newMe = new LutronQuantum(dc, comm, config);
 			return newMe;
 		}
+
+        readonly DeviceConfig _config;
 
 		public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
@@ -53,9 +56,10 @@ namespace LutronQuantum
         const string Set = "#";
         const string Get = "?";
 
-		public LutronQuantum(string key, string name, IBasicCommunication comm, LutronQuantumConfigObject props)
-            : base(key, name)
+		public LutronQuantum(DeviceConfig config, IBasicCommunication comm, LutronQuantumConfigObject props)
+            : base(config.Key, config.Name)
         {
+            _config = config;
             Communication = comm;
 
             IntegrationId = props.IntegrationId;
@@ -68,7 +72,6 @@ namespace LutronQuantum
 				Username = props.Control.TcpSshProperties.Username;
 				Password = props.Control.TcpSshProperties.Password;
 			}
-
 
             LightingScenes = props.Scenes;
 
@@ -259,7 +262,58 @@ namespace LutronQuantum
         {
             SendLine(string.Format("{0}SHADEGRP,{1},{2}", Set, ShadeGroupId, (int)eAction.Lower));
         }
-        
+
+        public void SetIntegrationId(string id)
+        {
+            if (String.IsNullOrEmpty(id))
+                return;
+
+            var props = JsonConvert.DeserializeObject<LutronQuantumConfigObject>(_config.Properties.ToString());
+
+            if (props.IntegrationId.Equals(id))
+                return;
+
+            props.IntegrationId = id;
+            IntegrationId = id;
+
+            _config.Properties = JsonConvert.SerializeObject(props);
+            ConfigWriter.UpdateDeviceConfig(_config);
+        }
+
+        public void SetShadeGroup1Id(string id)
+        {
+            if (String.IsNullOrEmpty(id))
+                return;
+
+            var props = JsonConvert.DeserializeObject<LutronQuantumConfigObject>(_config.Properties.ToString());
+
+            if (props.ShadeGroup1Id.Equals(id))
+                return;
+
+            props.ShadeGroup1Id = id;
+            ShadeGroup1Id = id;
+
+            _config.Properties = JsonConvert.SerializeObject(props);
+            ConfigWriter.UpdateDeviceConfig(_config);
+        }
+
+        public void SetShadeGroup2Id(string id)
+        {
+            if (String.IsNullOrEmpty(id))
+                return;
+
+            var props = JsonConvert.DeserializeObject<LutronQuantumConfigObject>(_config.Properties.ToString());
+
+            if (props.ShadeGroup2Id.Equals(id))
+                return;
+
+            props.ShadeGroup2Id = id;
+            ShadeGroup2Id = id;
+
+            _config.Properties = JsonConvert.SerializeObject(props);
+            ConfigWriter.UpdateDeviceConfig(_config);
+        }
+
 
         /// <summary>
         /// Appends the delimiter and sends the string
@@ -278,6 +332,11 @@ namespace LutronQuantum
         }
 
         #endregion
+
+        public override void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey, PepperDash.Essentials.Core.Bridges.EiscApiAdvanced bridge)
+        {
+            this.LinkToApiExt(trilist, joinStart, joinMapKey);
+        }
     }
 
     public enum eAction : int

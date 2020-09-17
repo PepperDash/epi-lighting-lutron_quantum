@@ -16,7 +16,7 @@ Example Config:
                 "key": "lighting-1",
                 "uid": 1920,
                 "name": "Lutron  QS Scenes 1",
-                "type": "lutronQs",
+                "type": "lutronQuantum",
                 "group": "lighting",
                 "properties": 
                 {

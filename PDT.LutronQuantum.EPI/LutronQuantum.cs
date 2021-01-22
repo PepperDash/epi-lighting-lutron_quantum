@@ -43,6 +43,7 @@ namespace LutronQuantum
 		public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
+		public bool Is232;
 
         CTimer SubscribeAfterLogin;
 
@@ -51,6 +52,8 @@ namespace LutronQuantum
         public string ShadeGroup2Id;
         string Username;
         string Password;
+
+		public Dictionary<string, iLutronDevice> LutronDevices = new Dictionary<string, iLutronDevice>();
 
         const string Delimiter = "\x0d\x0a";
         const string Set = "#";
@@ -71,6 +74,10 @@ namespace LutronQuantum
 
 				Username = props.Control.TcpSshProperties.Username;
 				Password = props.Control.TcpSshProperties.Password;
+			}
+			else
+			{
+				Is232 = true; 
 			}
 
             LightingScenes = props.Scenes;
@@ -117,6 +124,10 @@ namespace LutronQuantum
             if (e.Client.IsConnected)
             {
                 // Tasks on connect
+				if (Is232)
+				{
+					SubscribeToFeedback();
+				}
             }
         }
 
@@ -206,9 +217,14 @@ namespace LutronQuantum
         public void SubscribeToFeedback()
         {
             Debug.Console(1, "Sending Monitoring Subscriptions");
+			SendLine("#MONITORING,2,1");
             SendLine("#MONITORING,6,1");
             SendLine("#MONITORING,8,1");
             SendLine("#MONITORING,5,2");
+			foreach (var device in LutronDevices.Values)
+			{
+				device.Initialize();
+			}
         }
 
         /// <summary>
@@ -324,6 +340,11 @@ namespace LutronQuantum
             Debug.Console(2, this, "TX: '{0}'", s);
             Communication.SendText(s + Delimiter);
         }
+
+		public void AddDevice(string integrationID, iLutronDevice device)
+		{
+			LutronDevices.Add(integrationID, device);
+		}
         #region IBridge Members
 
         public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey)

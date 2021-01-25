@@ -95,6 +95,8 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BoolWithFeedback.cs" />
+    <Compile Include="LutronQseIOBridge.cs" />
     <Compile Include="iLutronDevice.cs" />
     <Compile Include="LutronQseIOConfigObject.cs" />
     <Compile Include="LutronQseIO.cs" />

@@ -113,7 +113,10 @@ namespace LutronQuantum
             Communication.Connect();
             CommunicationMonitor.StatusChange += (o, a) => { Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status); };
             CommunicationMonitor.Start();
-
+			if (Is232)
+			{
+				SubscribeToFeedback();
+			}
             return true;
         }
 
@@ -124,10 +127,7 @@ namespace LutronQuantum
             if (e.Client.IsConnected)
             {
                 // Tasks on connect
-				if (Is232)
-				{
-					SubscribeToFeedback();
-				}
+
             }
         }
 
@@ -138,7 +138,7 @@ namespace LutronQuantum
         /// <param name="args"></param>
         void Communication_TextReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
-            Debug.Console(2, this, "Text Received: '{0}'", args.Text);
+            //Debug.Console(2, this, "Text Received: '{0}'", args.Text);
 
             if (args.Text.Contains("login:"))
             {
@@ -173,37 +173,48 @@ namespace LutronQuantum
 
             try
             {
-                if (args.Text.Contains("~AREA"))
-                {
-                    var response = args.Text.Split(',');
+				if (args.Text.Contains(','))
+				{
+					var response = args.Text.Split(',');
+					var command = response[0];
+					var integrationId = response[1];
+					if (command.Contains("~AREA"))
+					{
+						if (integrationId != IntegrationId)
+						{
+							Debug.Console(2, this, "Response is not for correct Integration ID");
+							return;
+						}
+						else
+						{
+							var action = Int32.Parse(response[2]);
 
-                    var integrationId = response[1];
+							switch (action)
+							{
+								case (int)eAction.Scene:
+									{
+										var scene = response[3];
+										CurrentLightingScene = LightingScenes.FirstOrDefault(s => s.ID.Equals(scene));
 
-                    if (integrationId != IntegrationId)
-                    {
-                        Debug.Console(2, this, "Response is not for correct Integration ID");
-                        return;
-                    }
-                    else
-                    {
-                        var action = Int32.Parse(response[2]);
+										OnLightingSceneChange();
 
-                        switch (action)
-                        {
-                            case (int)eAction.Scene:
-                                {
-                                    var scene = response[3];
-                                    CurrentLightingScene = LightingScenes.FirstOrDefault(s => s.ID.Equals(scene));
+										break;
+									}
+								default:
+									break;
+							}
+						}
+					}
+					else if (command.Contains("~DEVICE"))
+					{
+						iLutronDevice device;
 
-                                    OnLightingSceneChange();
-
-                                    break;
-                                }
-                            default:
-                                break;
-                        }
-                    }
-                }
+						if (LutronDevices.TryGetValue(integrationId, out device))
+						{
+							device.ParseMessage(response);
+						}
+					}
+				}
             }
             catch (Exception e)
             {
@@ -217,7 +228,7 @@ namespace LutronQuantum
         public void SubscribeToFeedback()
         {
             Debug.Console(1, "Sending Monitoring Subscriptions");
-			SendLine("#MONITORING,2,1");
+			
             SendLine("#MONITORING,6,1");
             SendLine("#MONITORING,8,1");
             SendLine("#MONITORING,5,2");

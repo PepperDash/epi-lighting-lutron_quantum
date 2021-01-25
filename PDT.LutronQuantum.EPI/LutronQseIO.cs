@@ -14,6 +14,7 @@ using PepperDash.Essentials.Core.Config;
 using PepperDash.Essentials.Core.Devices;
 using PepperDash.Core;
 using PepperDash.Essentials.Bridges;
+using PepperDash.Essentials.Core;
 using Crestron.SimplSharpPro.DeviceSupport;
 
 
@@ -23,6 +24,7 @@ namespace LutronQuantum
     {
 		private LutronQuantum LutronDevice;
 		LutronQseIOConfigObject _Properties; 
+		public Dictionary<string, BoolWithFeedback> Feedbacks = new Dictionary<string, BoolWithFeedback>();
 
 		public static void LoadPlugin()
 		{
@@ -40,7 +42,13 @@ namespace LutronQuantum
 		public LutronQseIO(DeviceConfig config, LutronQseIOConfigObject props)
 			: base(config.Key, config.Name)
 		{
-			_Properties = props; 
+			_Properties = props;
+			Feedbacks.Add("1", new BoolWithFeedback());
+			Feedbacks.Add("2", new BoolWithFeedback());
+			Feedbacks.Add("3", new BoolWithFeedback());
+			Feedbacks.Add("4", new BoolWithFeedback());
+			Feedbacks.Add("5", new BoolWithFeedback());
+
 		}
 		public override bool CustomActivate()
 		{
@@ -54,40 +62,51 @@ namespace LutronQuantum
 				LutronDevice.AddDevice(_Properties.IntegrationId, this);
 
 			}
-
+			AddPostActivationAction(() =>
+			{
+				Initialize();
+			});
+			
+			
 			return true;
 		}
 		public void Initialize()
 		{
-			LutronDevice.SendLine(string.Format("#DEVICE,{0},1,3", _Properties.IntegrationId));
-			LutronDevice.SendLine(string.Format("#DEVICE,{0},1,4", _Properties.IntegrationId));
-
-			LutronDevice.SendLine(string.Format("#DEVICE,{0},2,3", _Properties.IntegrationId));
-			LutronDevice.SendLine(string.Format("#DEVICE,{0},2,4", _Properties.IntegrationId));
-
-			LutronDevice.SendLine(string.Format("#DEVICE,{0},3,3", _Properties.IntegrationId));
-			LutronDevice.SendLine(string.Format("#DEVICE,{0},3,4", _Properties.IntegrationId));
-
-			LutronDevice.SendLine(string.Format("#DEVICE,{0},4,3", _Properties.IntegrationId));
-			LutronDevice.SendLine(string.Format("#DEVICE,{0},4,4", _Properties.IntegrationId));
-
-			LutronDevice.SendLine(string.Format("#DEVICE,{0},5,3", _Properties.IntegrationId));
-			LutronDevice.SendLine(string.Format("#DEVICE,{0},5,4", _Properties.IntegrationId));
-
+			LutronDevice.SendLine("#MONITORING,2,1");
+			LutronDevice.SendLine(string.Format("~DEVICE,{0},1", _Properties.IntegrationId));
+			LutronDevice.SendLine(string.Format("~DEVICE,{0},2", _Properties.IntegrationId));
+			LutronDevice.SendLine(string.Format("~DEVICE,{0},3", _Properties.IntegrationId));
+			LutronDevice.SendLine(string.Format("~DEVICE,{0},4", _Properties.IntegrationId));
+			LutronDevice.SendLine(string.Format("~DEVICE,{0},5", _Properties.IntegrationId));
 		}
-		public void ParseMessage(string message)
+		public void ParseMessage(string[] message)
 		{
-
+			Debug.Console(2, "QseIO Got Message {0} {1} {2} {3} ", message[0],message[1],message[2], message[3]);
+			BoolWithFeedback fb;
+			if (Feedbacks.TryGetValue(message[2], out fb))
+			{
+				if (message[3] == "3")
+				{
+					fb.Value = true; 
+				}
+				if (message[3] == "4")
+				{
+					fb.Value = false;
+				}
+			}
 		}
 
 
-		#region IBridge Members
+        #region IBridge Members
 
-		public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey)
-		{
-			throw new NotImplementedException();
-		}
+        public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey)
+        {
+            this.LinkToApiExt(trilist, joinStart, joinMapKey);
+        }
 
-		#endregion
+        #endregion
+
+
+
 	}
 }

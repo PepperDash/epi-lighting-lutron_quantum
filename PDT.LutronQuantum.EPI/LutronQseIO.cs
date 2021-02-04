@@ -87,11 +87,11 @@ namespace LutronQuantum
 			{
 				if (message[3] == "3")
 				{
-					fb.Value = true; 
+					fb.Value = false; 
 				}
 				if (message[3] == "4")
 				{
-					fb.Value = false;
+					fb.Value = true;
 				}
 			}
 		}

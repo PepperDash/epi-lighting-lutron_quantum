@@ -33,7 +33,35 @@ namespace LutronQuantum
             trilist.SetStringSigAction(joinMap.ShadeGroup2IdSet, id => lightingDevice.SetShadeGroup2Id(id));
 
             // GenericLighitng Actions & FeedBack
-            trilist.SetUShortSigAction(joinMap.SelectScene, u => lightingDevice.SelectScene(lightingDevice.LightingScenes[u]));
+            trilist.SetUShortSigAction(joinMap.SelectScene, u => 
+				{
+					if(u <= lightingDevice.LightingScenes.Count)
+					{
+						lightingDevice.SelectScene(lightingDevice.LightingScenes[u]);
+					}
+				});
+			trilist.SetBoolSigAction(joinMap.Raise, b =>
+				{
+					if (b)
+					{
+						lightingDevice.MasterRaise();
+					}
+					else
+					{
+						lightingDevice.MasterRaiseLowerStop();
+					}
+				});
+			trilist.SetBoolSigAction(joinMap.Lower, b =>
+			{
+				if (b)
+				{
+					lightingDevice.MasterLower();
+				}
+				else
+				{
+					lightingDevice.MasterRaiseLowerStop();
+				}
+			});
             int sceneIndex = 1;
             foreach (var scene in lightingDevice.LightingScenes)
             {
@@ -75,6 +103,8 @@ namespace LutronQuantum
         public class LutronQuantumJoinMap : JoinMapBase
         {
             public uint IsOnline { get; set; }
+			public uint Raise { get; set; }
+			public uint Lower { get; set; }
             public uint SelectScene { get; set; }
             public uint LightingSceneOffset { get; set; }
             public uint ButtonVisibilityOffset { get; set; }
@@ -93,6 +123,8 @@ namespace LutronQuantum
                 SelectScene = 1;
                 LightingSceneOffset = 10;
                 ButtonVisibilityOffset = 40;
+				Raise = 2;
+				Lower = 3;
                 ShadeGroup1Raise = 60;
                 ShadeGroup1Lower = 61;
                 ShadeGroup2Raise = 62;
@@ -110,6 +142,8 @@ namespace LutronQuantum
             {
                 var joinOffset = joinStart - 1;
                 IsOnline = IsOnline + joinOffset;
+				Raise = Raise + joinOffset;
+				Lower = Lower + joinOffset;
                 SelectScene = SelectScene + joinOffset;
                 LightingSceneOffset = LightingSceneOffset + joinOffset;
                 ButtonVisibilityOffset = ButtonVisibilityOffset + joinOffset;

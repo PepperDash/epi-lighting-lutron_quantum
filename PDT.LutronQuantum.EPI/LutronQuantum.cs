@@ -43,6 +43,7 @@ namespace LutronQuantum
 		public IBasicCommunication Communication { get; private set; }
         public CommunicationGather PortGather { get; private set; }
         public StatusMonitorBase CommunicationMonitor { get; private set; }
+		public bool Is232;
 
         CTimer SubscribeAfterLogin;
 
@@ -51,6 +52,8 @@ namespace LutronQuantum
         public string ShadeGroup2Id;
         string Username;
         string Password;
+
+		public Dictionary<string, iLutronDevice> LutronDevices = new Dictionary<string, iLutronDevice>();
 
         const string Delimiter = "\x0d\x0a";
         const string Set = "#";
@@ -71,6 +74,10 @@ namespace LutronQuantum
 
 				Username = props.Control.TcpSshProperties.Username;
 				Password = props.Control.TcpSshProperties.Password;
+			}
+			else
+			{
+				Is232 = true; 
 			}
 
             LightingScenes = props.Scenes;
@@ -106,7 +113,10 @@ namespace LutronQuantum
             Communication.Connect();
             CommunicationMonitor.StatusChange += (o, a) => { Debug.Console(2, this, "Communication monitor state: {0}", CommunicationMonitor.Status); };
             CommunicationMonitor.Start();
-
+			if (Is232)
+			{
+				SubscribeToFeedback();
+			}
             return true;
         }
 
@@ -117,6 +127,7 @@ namespace LutronQuantum
             if (e.Client.IsConnected)
             {
                 // Tasks on connect
+
             }
         }
 
@@ -127,7 +138,7 @@ namespace LutronQuantum
         /// <param name="args"></param>
         void Communication_TextReceived(object sender, GenericCommMethodReceiveTextArgs args)
         {
-            Debug.Console(2, this, "Text Received: '{0}'", args.Text);
+            //Debug.Console(2, this, "Text Received: '{0}'", args.Text);
 
             if (args.Text.Contains("login:"))
             {
@@ -162,37 +173,48 @@ namespace LutronQuantum
 
             try
             {
-                if (args.Text.Contains("~AREA"))
-                {
-                    var response = args.Text.Split(',');
+				if (args.Text.Contains(','))
+				{
+					var response = args.Text.Split(',');
+					var command = response[0];
+					var integrationId = response[1];
+					if (command.Contains("~AREA"))
+					{
+						if (integrationId != IntegrationId)
+						{
+							Debug.Console(2, this, "Response is not for correct Integration ID");
+							return;
+						}
+						else
+						{
+							var action = Int32.Parse(response[2]);
 
-                    var integrationId = response[1];
+							switch (action)
+							{
+								case (int)eAction.Scene:
+									{
+										var scene = response[3];
+										CurrentLightingScene = LightingScenes.FirstOrDefault(s => s.ID.Equals(scene));
 
-                    if (integrationId != IntegrationId)
-                    {
-                        Debug.Console(2, this, "Response is not for correct Integration ID");
-                        return;
-                    }
-                    else
-                    {
-                        var action = Int32.Parse(response[2]);
+										OnLightingSceneChange();
 
-                        switch (action)
-                        {
-                            case (int)eAction.Scene:
-                                {
-                                    var scene = response[3];
-                                    CurrentLightingScene = LightingScenes.FirstOrDefault(s => s.ID.Equals(scene));
+										break;
+									}
+								default:
+									break;
+							}
+						}
+					}
+					else if (command.Contains("~DEVICE"))
+					{
+						iLutronDevice device;
 
-                                    OnLightingSceneChange();
-
-                                    break;
-                                }
-                            default:
-                                break;
-                        }
-                    }
-                }
+						if (LutronDevices.TryGetValue(integrationId, out device))
+						{
+							device.ParseMessage(response);
+						}
+					}
+				}
             }
             catch (Exception e)
             {
@@ -206,9 +228,14 @@ namespace LutronQuantum
         public void SubscribeToFeedback()
         {
             Debug.Console(1, "Sending Monitoring Subscriptions");
+			
             SendLine("#MONITORING,6,1");
             SendLine("#MONITORING,8,1");
             SendLine("#MONITORING,5,2");
+			foreach (var device in LutronDevices.Values)
+			{
+				device.Initialize();
+			}
         }
 
         /// <summary>
@@ -324,6 +351,11 @@ namespace LutronQuantum
             Debug.Console(2, this, "TX: '{0}'", s);
             Communication.SendText(s + Delimiter);
         }
+
+		public void AddDevice(string integrationID, iLutronDevice device)
+		{
+			LutronDevices.Add(integrationID, device);
+		}
         #region IBridge Members
 
         public void LinkToApi(BasicTriList trilist, uint joinStart, string joinMapKey)

@@ -69,7 +69,7 @@ namespace LutronQuantum
 			
 			
 			return true;
-		}
+		}	
 		public void Initialize()
 		{
 			LutronDevice.SendLine("#MONITORING,2,1");

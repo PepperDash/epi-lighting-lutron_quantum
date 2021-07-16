@@ -104,7 +104,7 @@ namespace LutronQuantum
             }
             else
             {
-                CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 120000, 120000, 300000, "?ETHERNET,0\x0d\x0a");
+                CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 120000, 120000, 300000, Poll);
             }
         }
 
@@ -119,6 +119,11 @@ namespace LutronQuantum
 			}
             return true;
         }
+
+		public void Poll()
+		{			
+			SendLine( string.Format("?AREA,{0},{1}", IntegrationId, (int)eAction.Scene));
+		}
 
         void socket_ConnectionChange(object sender, GenericSocketStatusChageEventArgs e)
         {
@@ -233,7 +238,7 @@ namespace LutronQuantum
             SendLine("#MONITORING,8,1");
             SendLine("#MONITORING,5,2");
 			foreach (var device in LutronDevices.Values)
-			{
+			{	
 				device.Initialize();
 			}
         }
@@ -246,8 +251,8 @@ namespace LutronQuantum
 
         public override void SelectScene(LightingScene scene)
         {
-            Debug.Console(1, this, "Selecting Scene: '{0}'", scene.Name);
             SendLine(string.Format("{0}AREA,{1},{2},{3}", Set, IntegrationId, (int)eAction.Scene, scene.ID));
+			Poll();
         }
 
         /// <summary>

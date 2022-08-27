@@ -31,6 +31,7 @@ namespace LutronQuantum
             trilist.SetStringSigAction(joinMap.IntegrationIdSet, id => lightingDevice.SetIntegrationId(id));
             trilist.SetStringSigAction(joinMap.ShadeGroup1IdSet, id => lightingDevice.SetShadeGroup1Id(id));
             trilist.SetStringSigAction(joinMap.ShadeGroup2IdSet, id => lightingDevice.SetShadeGroup2Id(id));
+			trilist.SetStringSigAction(joinMap.Commands, (s) => lightingDevice.SendLine(s));
 
             // GenericLighitng Actions & FeedBack
             trilist.SetUShortSigAction(joinMap.SelectScene, u => 
@@ -115,6 +116,7 @@ namespace LutronQuantum
             public uint ShadeGroup1Lower { get; set; }
             public uint ShadeGroup2Raise { get; set; }
             public uint ShadeGroup2Lower { get; set; }
+			public uint Commands { get; set; } 
 
             public LutronQuantumJoinMap()
             {
@@ -136,6 +138,7 @@ namespace LutronQuantum
                 IntegrationIdSet = 1;
                 ShadeGroup1IdSet = 2;
                 ShadeGroup2IdSet = 3;
+				Commands = 4;
             }
 
             public override void OffsetJoinNumbers(uint joinStart)
@@ -154,6 +157,7 @@ namespace LutronQuantum
                 IntegrationIdSet = IntegrationIdSet + joinOffset;
                 ShadeGroup1IdSet = ShadeGroup1IdSet + joinOffset;
                 ShadeGroup2IdSet = ShadeGroup2IdSet + joinOffset;
+				Commands = Commands + joinOffset;
             }
         }
     }

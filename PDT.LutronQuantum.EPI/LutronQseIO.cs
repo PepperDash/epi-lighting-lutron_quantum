@@ -16,6 +16,7 @@ using PepperDash.Core;
 using PepperDash.Essentials.Bridges;
 using PepperDash.Essentials.Core;
 using Crestron.SimplSharpPro.DeviceSupport;
+using Crestron.SimplSharpPro.CrestronThread;
 
 
 namespace LutronQuantum
@@ -72,12 +73,31 @@ namespace LutronQuantum
 		}	
 		public void Initialize()
 		{
-			LutronDevice.SendLine("#MONITORING,2,1");
-			LutronDevice.SendLine(string.Format("~DEVICE,{0},1", _Properties.IntegrationId));
-			LutronDevice.SendLine(string.Format("~DEVICE,{0},2", _Properties.IntegrationId));
-			LutronDevice.SendLine(string.Format("~DEVICE,{0},3", _Properties.IntegrationId));
-			LutronDevice.SendLine(string.Format("~DEVICE,{0},4", _Properties.IntegrationId));
-			LutronDevice.SendLine(string.Format("~DEVICE,{0},5", _Properties.IntegrationId));
+			CrestronInvoke.BeginInvoke(o =>
+			{
+				Thread.Sleep(1000);
+				LutronDevice.SendLine("#MONITORING,2,1");
+				Thread.Sleep(1000);
+				LutronDevice.SendLine(string.Format("~DEVICE,{0},1", _Properties.IntegrationId));
+				Thread.Sleep(1000);
+				LutronDevice.SendLine(string.Format("~DEVICE,{0},2", _Properties.IntegrationId));
+				Thread.Sleep(1000);
+				LutronDevice.SendLine(string.Format("~DEVICE,{0},3", _Properties.IntegrationId));
+				Thread.Sleep(1000);
+				LutronDevice.SendLine(string.Format("~DEVICE,{0},4", _Properties.IntegrationId));
+				Thread.Sleep(1000);
+				LutronDevice.SendLine(string.Format("~DEVICE,{0},5", _Properties.IntegrationId));
+				Thread.Sleep(1000);
+				LutronDevice.SendLine(string.Format("?DEVICE,{0},1,35", _Properties.IntegrationId));
+				Thread.Sleep(1000);
+				LutronDevice.SendLine(string.Format("?DEVICE,{0},2,35", _Properties.IntegrationId));
+				Thread.Sleep(1000);
+				LutronDevice.SendLine(string.Format("?DEVICE,{0},3,35", _Properties.IntegrationId));
+				Thread.Sleep(1000);
+				LutronDevice.SendLine(string.Format("?DEVICE,{0},4,35", _Properties.IntegrationId));
+				Thread.Sleep(1000);
+				LutronDevice.SendLine(string.Format("?DEVICE,{0},5,35", _Properties.IntegrationId));
+			});
 		}
 		public void ParseMessage(string[] message)
 		{

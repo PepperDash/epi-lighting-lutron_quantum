@@ -75,27 +75,28 @@ namespace LutronQuantum
 		{
 			CrestronInvoke.BeginInvoke(o =>
 			{
-				Thread.Sleep(1000);
+				Random rnd = new Random();
+				Thread.Sleep(rnd.Next(10000));
 				LutronDevice.SendLine("#MONITORING,2,1");
-				Thread.Sleep(1000);
+				Thread.Sleep(rnd.Next(1000, 5000));
 				LutronDevice.SendLine(string.Format("~DEVICE,{0},1", _Properties.IntegrationId));
-				Thread.Sleep(1000);
+				Thread.Sleep(rnd.Next(1000, 5000));
 				LutronDevice.SendLine(string.Format("~DEVICE,{0},2", _Properties.IntegrationId));
-				Thread.Sleep(1000);
+				Thread.Sleep(rnd.Next(1000, 5000));
 				LutronDevice.SendLine(string.Format("~DEVICE,{0},3", _Properties.IntegrationId));
-				Thread.Sleep(1000);
+				Thread.Sleep(rnd.Next(1000, 5000));
 				LutronDevice.SendLine(string.Format("~DEVICE,{0},4", _Properties.IntegrationId));
-				Thread.Sleep(1000);
+				Thread.Sleep(rnd.Next(1000, 5000));
 				LutronDevice.SendLine(string.Format("~DEVICE,{0},5", _Properties.IntegrationId));
-				Thread.Sleep(1000);
+				Thread.Sleep(rnd.Next(1000, 5000));
 				LutronDevice.SendLine(string.Format("?DEVICE,{0},1,35", _Properties.IntegrationId));
-				Thread.Sleep(1000);
+				Thread.Sleep(rnd.Next(1000, 5000));
 				LutronDevice.SendLine(string.Format("?DEVICE,{0},2,35", _Properties.IntegrationId));
-				Thread.Sleep(1000);
+				Thread.Sleep(rnd.Next(1000, 5000));
 				LutronDevice.SendLine(string.Format("?DEVICE,{0},3,35", _Properties.IntegrationId));
-				Thread.Sleep(1000);
+				Thread.Sleep(rnd.Next(1000, 5000));
 				LutronDevice.SendLine(string.Format("?DEVICE,{0},4,35", _Properties.IntegrationId));
-				Thread.Sleep(1000);
+				Thread.Sleep(rnd.Next(1000, 5000));
 				LutronDevice.SendLine(string.Format("?DEVICE,{0},5,35", _Properties.IntegrationId));
 			});
 		}

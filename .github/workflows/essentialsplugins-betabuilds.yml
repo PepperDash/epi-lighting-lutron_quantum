@@ -82,10 +82,11 @@ jobs:
           Param ([string]$Version)
           #$fullVersion = $Version
           $baseVersion = [regex]::Match($Version, "(\d+.\d+.\d+).*").captures.groups[1].value
-          $NewAssemblyVersion = 'AssemblyVersion("' + $baseVersion + '.*")'
+          $NewAssemblyVersion = 'AssemblyVersion("‘ + $baseVersion + ‘.*")'
           Write-Output "AssemblyVersion = $NewAssemblyVersion"
           $NewAssemblyInformationalVersion = 'AssemblyInformationalVersion("' + $Version + '")'
           Write-Output "AssemblyInformationalVersion = $NewAssemblyInformationalVersion"
+
           foreach ($o in $input) {
               Write-output $o.FullName
               $TmpFile = $o.FullName + ".tmp"
@@ -98,20 +99,22 @@ jobs:
               move-item $TmpFile $o.FullName -force
             }
           }
-          function Update-AllAssemblyInfoFiles ( $version ) {
+
+          function Update-AllAssemblyInfoFiles ( $Env:VERSION ) {
               foreach ($file in "AssemblyInfo.cs", "AssemblyInfo.vb" ) {
                   get-childitem -Path $Env:GITHUB_WORKSPACE -recurse | Where-Object { $_.Name -eq $file } | Update-SourceVersion $version ;
               }
           }
+
           # validate arguments
-          $r = [System.Text.RegularExpressions.Regex]::Match($Env:VERSION, "\d+\.\d+\.\d+.*");
+          $r = [System.Text.RegularExpressions.Regex]::Match($args[0], "\d+\.\d+\.\d+.*");
           if ($r.Success) {
-              Write-Output "Updating Assembly Version to $Env:VERSION ...";
-              Update-AllAssemblyInfoFiles $Env:VERSION;
+              Write-Output "Updating Assembly Version to $args ...";
+              Update-AllAssemblyInfoFiles $args[0];
           }
           else {
               Write-Output " ";
-              Write-Output "Error: Input version $Env:VERSION does not match x.y.z format!"
+              Write-Output "Error: Input version does not match x.y.z format!"
               Write-Output " ";
               Write-Output "Unable to apply version to AssemblyInfo.cs files";
           }
@@ -153,7 +156,7 @@ jobs:
           $exclusions = "packages"
           # Trying to get any .json schema files (not currently working)
           # Gets any files with the listed extensions.
-          Get-ChildItem -recurse -Path "$($Env:GITHUB_WORKSPACE)" -include "*.clz", "*.cpz", "*.cplz", "*.nuspec", "*.md" | ForEach-Object {
+          Get-ChildItem -recurse -Path "$($Env:GITHUB_WORKSPACE)" -include "*.clz", "*.cpz", "*.cplz", "*.nuspec" | ForEach-Object {
             $allowed = $true;
             # Exclude any files in submodules
             foreach ($exclude in $exclusions) {
@@ -253,27 +256,19 @@ jobs:
       - name: Get nuget File 
         shell: powershell
         run: |
-          $nuspec_file = (Get-ChildItem *.nuspec -recurse).BaseName
-          echo "NUSPEC_FILE=$($nuspec_file)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-      # Pulls the nuget builder packages
+          $nuspec_file = Get-ChildItem *.nuspec -recurse 
+          echo "NUSPEC_FILE=$($nuspec_file.BaseName)"| Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Add nuget.exe
-        if: "!contains(env.NUSPEC_FILE, 'EssentialsPluginTemplate')"
         uses: nuget/setup-nuget@v1
-      # Creating nuget Packages
       - name: Add Github Packages source
-        if: "!contains(env.NUSPEC_FILE, 'EssentialsPluginTemplate')"
         run: nuget sources add -name github -source https://nuget.pkg.github.com/pepperdash/index.json -username Pepperdash -password ${{ secrets.GITHUB_TOKEN }}
+      # Pushes to nuget, not needed unless publishing publicly
+      #- name: Add nuget.org API Key
+      #  run: nuget setApiKey ${{ secrets.NUGET_API_KEY }}
       - name: Create nuget package
-        if: "!contains(env.NUSPEC_FILE, 'EssentialsPluginTemplate')"
         run: nuget pack "./${{ env.NUSPEC_FILE}}.nuspec" -version ${{ env.VERSION }}
-      # Pushes to internal github registry
       - name: Publish nuget package to Github registry
-        if: "!contains(env.NUSPEC_FILE, 'EssentialsPluginTemplate')"
         run: nuget push **/*.nupkg -source github
-      # Pushes to nuget gallery
-      - name: Add nuget.org API Key
-        if: github.repository_owner == 'PepperDash' && github.repository_visibility == 'public' && !contains(env.NUSPEC_FILE, 'EssentialsPluginTemplate')
-        run: nuget setApiKey ${{ secrets.NUGET_API_KEY }}
-      - name: Publish nuget package to nuget.org
-        if: github.repository_owner == 'PepperDash' && github.repository_visibility == 'public' && !contains(env.NUSPEC_FILE, 'EssentialsPluginTemplate')
-        run: nuget push **/*.nupkg -Source https://api.nuget.org/v3/index.json
+      # Pushes to nuget, not needed unless publishing publicly >> this pushes package to nuget.org
+      #- name: Publish nuget package to nuget.org
+      #  run: nuget push **/*.nupkg -Source https://api.nuget.org/v3/index.json

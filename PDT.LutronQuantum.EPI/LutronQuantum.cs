@@ -1,22 +1,14 @@
 ﻿using System;
-using Crestron.SimplSharp;                          				// For Basic SIMPL# Classes
-using Crestron.SimplSharpPro;                       				// For Basic SIMPL#Pro classes
-using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-
-
+using Crestron.SimplSharp;
+using Crestron.SimplSharpPro.DeviceSupport;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-
-using PepperDash.Essentials;
-using PepperDash.Essentials.Core;
-using PepperDash.Essentials.Core.Lighting;
-using PepperDash.Essentials.Core.Config;
-using PepperDash.Essentials.Core.Devices;
 using PepperDash.Core;
 using PepperDash.Essentials.Bridges;
-using Crestron.SimplSharpPro.DeviceSupport;
+using PepperDash.Essentials.Core;
+using PepperDash.Essentials.Core.Config;
+using PepperDash.Essentials.Core.Lighting;
 
 namespace LutronQuantum 
 {

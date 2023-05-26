@@ -1,9 +1,9 @@
 ﻿
 namespace LutronQuantum
 {
-	public interface iLutronDevice
+	public interface ILutronDevice
 	{
-		void Initialize();
-		void ParseMessage(string[] message);
+		void DeviceInitialize();
+		void ProcessResponse(string[] message);
 	}
 }

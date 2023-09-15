@@ -90,6 +90,11 @@ namespace LutronQuantum
                 lightingDevice.ShadeGroupLower(lightingDevice.ShadeGroup1Id);
             });
 
+            trilist.SetSigTrueAction(joinMap.ShadeGroup1Stop, () =>
+            {
+                lightingDevice.ShadeGroupStop(lightingDevice.ShadeGroup1Id);
+            });
+
             trilist.SetSigTrueAction(joinMap.ShadeGroup2Raise, () =>
             {
                 lightingDevice.ShadeGroupRaise(lightingDevice.ShadeGroup2Id);
@@ -98,6 +103,11 @@ namespace LutronQuantum
             trilist.SetSigTrueAction(joinMap.ShadeGroup2Lower, () =>
             {
                 lightingDevice.ShadeGroupLower(lightingDevice.ShadeGroup2Id);
+            });
+
+            trilist.SetSigTrueAction(joinMap.ShadeGroup2Stop, () =>
+            {
+                lightingDevice.ShadeGroupStop(lightingDevice.ShadeGroup2Id);
             });
         }
 
@@ -114,8 +124,10 @@ namespace LutronQuantum
             public uint ShadeGroup2IdSet { get; set; }
             public uint ShadeGroup1Raise { get; set; }
             public uint ShadeGroup1Lower { get; set; }
+            public uint ShadeGroup1Stop { get; set; }
             public uint ShadeGroup2Raise { get; set; }
             public uint ShadeGroup2Lower { get; set; }
+            public uint ShadeGroup2Stop { get; set; }
 			public uint Commands { get; set; } 
 
             public LutronQuantumJoinMap()
@@ -131,6 +143,8 @@ namespace LutronQuantum
                 ShadeGroup1Lower = 61;
                 ShadeGroup2Raise = 62;
                 ShadeGroup2Lower = 63;
+                ShadeGroup1Stop = 64;
+                ShadeGroup2Stop = 65;
 
                 // Analog
 
@@ -152,8 +166,10 @@ namespace LutronQuantum
                 ButtonVisibilityOffset = ButtonVisibilityOffset + joinOffset;
                 ShadeGroup1Raise = ShadeGroup1Raise + joinOffset;
                 ShadeGroup1Lower = ShadeGroup1Lower + joinOffset;
+                ShadeGroup1Stop = ShadeGroup1Stop + joinOffset;
                 ShadeGroup2Raise = ShadeGroup2Raise + joinOffset;
                 ShadeGroup2Lower = ShadeGroup2Lower + joinOffset;
+                ShadeGroup2Stop = ShadeGroup2Stop + joinOffset;
                 IntegrationIdSet = IntegrationIdSet + joinOffset;
                 ShadeGroup1IdSet = ShadeGroup1IdSet + joinOffset;
                 ShadeGroup2IdSet = ShadeGroup2IdSet + joinOffset;

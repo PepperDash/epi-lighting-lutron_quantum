@@ -295,6 +295,14 @@ namespace LutronQuantum
             SendLine(string.Format("{0}SHADEGRP,{1},{2}", Set, ShadeGroupId, (int)eAction.Lower));
         }
 
+        /// <summary>
+        /// Stops the shades in the group
+        /// </summary>
+        public void ShadeGroupStop(string ShadeGroupId)
+        {
+            SendLine(string.Format("{0}SHADEGRP,{1},{2}", Set, ShadeGroupId, (int)eAction.Stop));
+        }
+
         public void SetIntegrationId(string id)
         {
             if (String.IsNullOrEmpty(id))

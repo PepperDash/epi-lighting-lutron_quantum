@@ -104,7 +104,7 @@ namespace LutronQuantum
             }
             else
             {
-                CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 120000, 120000, 300000, Poll);
+                CommunicationMonitor = new GenericCommunicationMonitor(this, Communication, 100000, 120000, 301000, Poll);
             }
         }
 

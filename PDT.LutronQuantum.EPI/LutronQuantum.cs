@@ -157,7 +157,7 @@ namespace LutronQuantum
                 SubscribeAfterLogin = new CTimer(x => SubscribeToFeedback(), null, 5000);
 
             }
-            else if (args.Text.Contains("Access Granted"))
+            else if (args.Text.Contains("Access Granted") || args.Text.Contains("connection established"))
             {
                 if (SubscribeAfterLogin != null)
                 {
